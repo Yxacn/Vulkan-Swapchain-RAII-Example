@@ -46,6 +46,7 @@ namespace vkp
         void createGraphicsPipeline(VulkanContext& context, SwapChain& swapChain);
         void destroyResources() noexcept;
 
+    private:
         VulkanContext* m_context{ nullptr };
         PipelineConfig m_config;
         VkRenderPass m_renderPass{ VK_NULL_HANDLE };

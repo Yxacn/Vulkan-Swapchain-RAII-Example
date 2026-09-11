@@ -2,6 +2,7 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -10,7 +11,7 @@ namespace vkp
 {
     inline constexpr int DEFAULT_WINDOW_WIDTH = 800;
     inline constexpr int DEFAULT_WINDOW_HEIGHT = 600;
-    inline constexpr const char* DEFAULT_WINDOW_TITLE = "Vulkan";
+    inline constexpr std::string_view DEFAULT_WINDOW_TITLE = "Vulkan";
 
     struct WindowInfo
     {
@@ -41,6 +42,7 @@ namespace vkp
         void centerWindow();
         void destroyWindow() noexcept;
 
+    private:
         WindowInfo m_windowInfo;
         GLFWwindow* m_window{ nullptr };
 

@@ -2,6 +2,7 @@
 #include "SyncManager.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <stdexcept>
 
 #include "VulkanContext.hpp"
@@ -62,6 +63,8 @@ namespace vkp
     // 避免为永远无法并行使用的帧创建多余的同步对象。
     void SyncManager::createSyncObjects(VulkanContext& context, uint32_t imageCount)
     {
+        assert(imageCount > 0);
+
         m_imagesInFlight.assign(imageCount, VK_NULL_HANDLE);
         m_renderFinishedSemaphores.assign(imageCount, VK_NULL_HANDLE);
 

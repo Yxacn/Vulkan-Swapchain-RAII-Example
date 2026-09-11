@@ -40,6 +40,7 @@ namespace vkp
         void recreateSwapChain();
         void updateUniformBuffers();
 
+    private:
         GLFWwindow* m_window{ nullptr };
 
         std::unique_ptr<VulkanContext> m_context;

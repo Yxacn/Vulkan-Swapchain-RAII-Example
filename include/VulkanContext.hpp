@@ -1,6 +1,7 @@
 // VulkanContext.hpp
 #pragma once
 
+#include <cassert>
 #include <optional>
 #include <vector>
 
@@ -29,7 +30,11 @@ namespace vkp
         [[nodiscard]] VkQueue getGraphicsQueue() const { return m_graphicsQueue; }
         [[nodiscard]] VkQueue getPresentQueue() const { return m_presentQueue; }
 
-        void waitIdle() const { checkVk(vkDeviceWaitIdle(m_device), "Failed to wait for device idle!"); }
+        void waitIdle() const
+        {
+            assert(m_device != VK_NULL_HANDLE);
+            checkVk(vkDeviceWaitIdle(m_device), "Failed to wait for device idle!");
+        }
 
         struct QueueFamilyIndices
         {
@@ -60,6 +65,7 @@ namespace vkp
         [[nodiscard]] bool isDeviceSuitable(VkPhysicalDevice device) const;
         void destroyResources() noexcept;
 
+    private:
         VkInstance m_instance{ VK_NULL_HANDLE };
         VkDebugUtilsMessengerEXT m_debugMessenger{ VK_NULL_HANDLE };
         bool m_validationEnabled{ false }; // 运行期记录验证层是否真正启用（可能降级）

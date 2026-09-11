@@ -1,6 +1,7 @@
 // FrameBufferManager.cpp
 #include "FrameBufferManager.hpp"
 
+#include <cassert>
 #include <stdexcept>
 
 #include "RenderPassPipeline.hpp"
@@ -34,6 +35,8 @@ namespace vkp
     void FrameBufferManager::createFramebuffers(VulkanContext& context, SwapChain& swapChain, VkRenderPass renderPass)
     {
         const auto& imageViews = swapChain.getImageViews();
+        assert(!imageViews.empty());
+
         m_swapChainFramebuffers.assign(imageViews.size(), VK_NULL_HANDLE);
 
         for (size_t i = 0; i < imageViews.size(); ++i)

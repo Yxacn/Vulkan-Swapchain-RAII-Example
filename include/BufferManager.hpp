@@ -71,6 +71,7 @@ namespace vkp
                         VkDeviceSize size);
         void destroyResources() noexcept;
 
+    private:
         VulkanContext* m_context{ nullptr };
         VkPhysicalDeviceMemoryProperties m_memoryProperties{};
         VkBuffer m_vertexBuffer{ VK_NULL_HANDLE };

@@ -50,6 +50,7 @@ namespace vkp
         void createSyncObjects(VulkanContext& context, uint32_t imageCount);
         void destroySyncObjects() noexcept;
 
+    private:
         VulkanContext* m_context{ nullptr };
         uint32_t m_frameCount{ MAX_FRAMES_IN_FLIGHT };
         std::array<VkSemaphore, MAX_FRAMES_IN_FLIGHT> m_imageAvailableSemaphores{};

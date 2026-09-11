@@ -26,6 +26,7 @@ namespace vkp
         void destroyFramebuffers(VulkanContext& context) noexcept;
         void createFramebuffers(VulkanContext& context, SwapChain& swapChain, VkRenderPass renderPass);
 
+    private:
         VulkanContext* m_context{ nullptr };
         std::vector<VkFramebuffer> m_swapChainFramebuffers;
     };

@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cassert>
 #include <iostream>
 #include <stdexcept>
 #include <string_view>
@@ -218,6 +219,8 @@ namespace vkp
 
     void VulkanContext::setupDebugMessenger()
     {
+        assert(m_instance != VK_NULL_HANDLE);
+
         if (!m_validationEnabled)
             return;
 
@@ -241,12 +244,15 @@ namespace vkp
 
     void VulkanContext::createSurface(GLFWwindow* window)
     {
+        assert(m_instance != VK_NULL_HANDLE);
         checkVk(glfwCreateWindowSurface(m_instance, window, nullptr, &m_surface), "Failed to create window surface!");
     }
 
     // 选择首个满足扩展、队列族与交换链要求的物理设备
     void VulkanContext::pickPhysicalDevice()
     {
+        assert(m_instance != VK_NULL_HANDLE);
+
         uint32_t deviceCount = 0;
         checkVk(vkEnumeratePhysicalDevices(m_instance, &deviceCount, nullptr), "Failed to enumerate physical devices!");
         if (deviceCount == 0)
@@ -287,6 +293,9 @@ namespace vkp
     // optional 用于区分“尚未找到”与“队列族 0”，避免 int 哨兵值。
     VulkanContext::QueueFamilyIndices VulkanContext::findQueueFamilies(VkPhysicalDevice device) const
     {
+        assert(device != VK_NULL_HANDLE);
+        assert(m_surface != VK_NULL_HANDLE);
+
         QueueFamilyIndices indices;
 
         uint32_t queueFamilyCount = 0;
@@ -318,6 +327,9 @@ namespace vkp
 
     VulkanContext::SwapChainSupportDetails VulkanContext::querySwapChainSupport(VkPhysicalDevice device) const
     {
+        assert(device != VK_NULL_HANDLE);
+        assert(m_surface != VK_NULL_HANDLE);
+
         SwapChainSupportDetails details;
         checkVk(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, m_surface, &details.capabilities),
                 "Failed to query surface capabilities!");
@@ -361,6 +373,8 @@ namespace vkp
     // 图形与呈现队列族不同时，需要分别创建队列
     void VulkanContext::createLogicalDevice()
     {
+        assert(m_physicalDevice != VK_NULL_HANDLE);
+
         const QueueFamilyIndices indices = findQueueFamilies(m_physicalDevice);
         if (!indices.isComplete())
         {

@@ -1,6 +1,7 @@
 // CommandManager.cpp
 #include "CommandManager.hpp"
 
+#include <cassert>
 #include <stdexcept>
 
 #include "BufferManager.hpp"
@@ -51,6 +52,9 @@ namespace vkp
                                               BufferManager& bufferManager)
     {
         const auto& framebuffers = framebufferManager.getFramebuffers();
+        assert(!framebuffers.empty());
+        assert(framebuffers.size() == swapChain.getImageCount());
+
         const uint32_t imageCount = static_cast<uint32_t>(framebuffers.size());
         const uint32_t indexCount = bufferManager.getIndexCount();
 

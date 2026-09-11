@@ -2,6 +2,7 @@
 #include "RenderPassPipeline.hpp"
 
 #include <array>
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -215,6 +216,9 @@ namespace vkp
 
     void RenderPassPipeline::createGraphicsPipeline(VulkanContext& context, SwapChain& swapChain)
     {
+        assert(m_renderPass != VK_NULL_HANDLE);
+        assert(m_descriptorSetLayout != VK_NULL_HANDLE);
+
         // SHADER_DIR 由 CMake 注入（末尾带分隔符），着色器文件名来自 PipelineConfig
         const auto vertShaderCode = readFile(std::string(SHADER_DIR) + m_config.vertexShader);
         const auto fragShaderCode = readFile(std::string(SHADER_DIR) + m_config.fragmentShader);

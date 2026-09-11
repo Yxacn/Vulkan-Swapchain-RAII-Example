@@ -171,6 +171,9 @@ namespace vkp
 
     void VKEngine::updateUniformBuffers()
     {
+        assert(m_swapChain != nullptr);
+        assert(m_bufferManager != nullptr);
+
         const glm::mat4 model(1.0f);
         const glm::mat4 view =
             glm::lookAt(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -193,6 +196,11 @@ namespace vkp
     // 只有呈现完成并推进 currentFrame 后，下一帧才会复用这套资源。
     void VKEngine::drawFrame()
     {
+        assert(m_context != nullptr);
+        assert(m_swapChain != nullptr);
+        assert(m_syncManager != nullptr);
+        assert(m_commandManager != nullptr);
+
         const auto& imageAvailableSemaphores = m_syncManager->getImageAvailableSemaphores();
         const auto& renderFinishedSemaphores = m_syncManager->getRenderFinishedSemaphores();
         const auto& fences = m_syncManager->getInFlightFences();

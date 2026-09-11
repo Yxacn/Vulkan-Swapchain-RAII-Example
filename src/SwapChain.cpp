@@ -132,6 +132,8 @@ namespace vkp
     SwapChain::SwapChainResources SwapChain::buildSwapChain(VulkanContext& context, GLFWwindow* window,
                                                             VkSwapchainKHR oldSwapChain)
     {
+        assert(window != nullptr);
+
         SwapChainResources resources;
         try
         {
@@ -216,6 +218,8 @@ namespace vkp
 
     void SwapChain::commit(SwapChainResources&& resources)
     {
+        assert(resources.images.size() == resources.imageViews.size());
+
         cleanupSwapChain();
 
         m_swapChain = resources.swapChain;

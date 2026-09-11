@@ -1,6 +1,7 @@
 // SwapChain.hpp
 #pragma once
 
+#include <cassert>
 #include <vector>
 
 #include <GLFW/glfw3.h>
@@ -30,6 +31,8 @@ namespace vkp
 
         [[nodiscard]] VkResult acquireNextImage(VkSemaphore semaphore, uint32_t& imageIndex) const
         {
+            assert(m_context != nullptr);
+            assert(m_swapChain != VK_NULL_HANDLE);
             return vkAcquireNextImageKHR(m_context->getDevice(), m_swapChain, UINT64_MAX, semaphore, VK_NULL_HANDLE,
                                          &imageIndex);
         }
@@ -50,6 +53,7 @@ namespace vkp
                                                         VkSwapchainKHR oldSwapChain);
         void commit(SwapChainResources&& resources);
 
+    private:
         VulkanContext* m_context{ nullptr };
         VkSwapchainKHR m_swapChain{ VK_NULL_HANDLE };
         std::vector<VkImage> m_swapChainImages;

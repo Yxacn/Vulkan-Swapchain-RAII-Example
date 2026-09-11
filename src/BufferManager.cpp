@@ -171,6 +171,8 @@ namespace vkp
     void BufferManager::createBuffer(VulkanContext& context, VkDeviceSize size, VkBufferUsageFlags usage,
                                      VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
     {
+        assert(size > 0);
+
         VkBufferCreateInfo bufferInfo{};
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
         bufferInfo.size = size;
@@ -222,6 +224,8 @@ namespace vkp
     void BufferManager::copyBuffer(VulkanContext& context, CommandManager& cmdManager, VkBuffer srcBuffer,
                                    VkBuffer dstBuffer, VkDeviceSize size)
     {
+        assert(srcBuffer != VK_NULL_HANDLE && dstBuffer != VK_NULL_HANDLE && size > 0);
+
         // 一次性命令缓冲，拷贝完成后由 RAII 自动归还
         const VkCommandPool pool = cmdManager.getCommandPool();
         const ScopedCommandBuffer commandBuffer(context.getDevice(), pool);
@@ -265,6 +269,8 @@ namespace vkp
                                                 std::span<const std::byte> data, VkBufferUsageFlags usage,
                                                 VkBuffer& buffer, VkDeviceMemory& bufferMemory)
     {
+        assert(!data.empty());
+
         const VkDeviceSize size = static_cast<VkDeviceSize>(data.size());
         VkBuffer stagingBuffer{ VK_NULL_HANDLE };
         VkDeviceMemory stagingBufferMemory{ VK_NULL_HANDLE };
@@ -371,6 +377,11 @@ namespace vkp
                                              SwapChain& swapChain)
     {
         const uint32_t imageCount = swapChain.getImageCount();
+        assert(imageCount > 0);
+        assert(m_uniformBuffers.size() >= imageCount);
+        assert(m_uniformBuffersMemory.size() >= imageCount);
+        assert(m_uniformBuffersMapped.size() >= imageCount);
+
         std::vector<VkDescriptorSetLayout> layouts(imageCount, pipeline.getDescriptorSetLayout());
 
         VkDescriptorSetAllocateInfo allocInfo{};
