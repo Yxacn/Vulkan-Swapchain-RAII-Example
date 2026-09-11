@@ -2,6 +2,7 @@
 #pragma once
 
 #include <array>
+#include <cassert>
 #include <vector>
 
 #include <vulkan/vulkan.h>
@@ -34,8 +35,16 @@ namespace vkp
         {
             return m_inFlightFences;
         }
-        [[nodiscard]] VkFence getImageInFlight(uint32_t imageIndex) const { return m_imagesInFlight[imageIndex]; }
-        void setImageInFlight(uint32_t imageIndex, VkFence fence) { m_imagesInFlight[imageIndex] = fence; }
+        [[nodiscard]] VkFence getImageInFlight(uint32_t imageIndex) const
+        {
+            assert(imageIndex < m_imagesInFlight.size());
+            return m_imagesInFlight[imageIndex];
+        }
+        void setImageInFlight(uint32_t imageIndex, VkFence fence)
+        {
+            assert(imageIndex < m_imagesInFlight.size());
+            m_imagesInFlight[imageIndex] = fence;
+        }
 
     private:
         void createSyncObjects(VulkanContext& context, uint32_t imageCount);

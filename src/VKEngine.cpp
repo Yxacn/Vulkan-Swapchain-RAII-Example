@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cassert>
 #include <stdexcept>
 #include <utility>
 
@@ -118,6 +119,10 @@ namespace vkp
         const uint32_t frameCount = std::min(MAX_FRAMES_IN_FLIGHT, m_swapChain->getImageCount());
         m_syncManager = std::make_unique<SyncManager>(*m_context, m_swapChain->getImageCount(), frameCount);
         m_currentFrame = 0;
+
+        // 命令缓冲与 renderFinished 信号量按交换链图像数分配，索引一致性由 drawFrame 依赖
+        assert(m_commandManager->getCommandBuffers().size() == m_swapChain->getImageCount());
+        assert(m_syncManager->getRenderFinishedSemaphores().size() == m_swapChain->getImageCount());
     }
 
     // 只销毁帧资源；常驻资源（命令池/几何缓冲）保留。帧缓冲先于管线销毁，
@@ -192,6 +197,7 @@ namespace vkp
         const auto& renderFinishedSemaphores = m_syncManager->getRenderFinishedSemaphores();
         const auto& fences = m_syncManager->getInFlightFences();
         const uint32_t frameCount = m_syncManager->getFrameCount();
+        assert(m_currentFrame < frameCount);
         const VkFence inFlightFence = fences[m_currentFrame];
 
         // 等待上一帧的栅栏，保证当前帧可安全复用
@@ -210,6 +216,8 @@ namespace vkp
         {
             throw std::runtime_error("Failed to acquire swap chain image!");
         }
+
+        assert(imageIndex < renderFinishedSemaphores.size());
 
         const VkFence imageFence = m_syncManager->getImageInFlight(imageIndex);
         if (imageFence != VK_NULL_HANDLE && imageFence != inFlightFence)

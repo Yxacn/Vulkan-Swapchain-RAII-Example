@@ -1,6 +1,7 @@
 // BufferManager.cpp
 #include "BufferManager.hpp"
 
+#include <cassert>
 #include <cstring>
 #include <stdexcept>
 
@@ -415,6 +416,8 @@ namespace vkp
     void BufferManager::bindBuffers(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout,
                                     uint32_t currentImage) const
     {
+        assert(currentImage < m_descriptorSets.size());
+
         VkBuffer vertexBuffers[] = { m_vertexBuffer };
         VkDeviceSize offsets[] = { 0 };
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);

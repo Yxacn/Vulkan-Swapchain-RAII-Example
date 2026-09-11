@@ -2,6 +2,7 @@
 #include "SwapChain.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <stdexcept>
 
 #include "VkCheck.hpp"
@@ -144,6 +145,7 @@ namespace vkp
             const VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(support.formats);
             const VkPresentModeKHR presentMode = chooseSwapPresentMode(support.presentModes);
             const VkExtent2D extent = chooseSwapExtent(support.capabilities, window);
+            assert(extent.width > 0 && extent.height > 0);
 
             uint32_t imageCount = support.capabilities.minImageCount + 1;
             if (support.capabilities.maxImageCount > 0 && imageCount > support.capabilities.maxImageCount)
