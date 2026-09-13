@@ -28,7 +28,7 @@
 ## 项目结构
 
 ```
-VkProject/
+Vulkan-Swapchain-RAII-Example/
 ├── CMakeLists.txt        # 顶层构建：项目/版本声明、依赖、着色器编译
 ├── cmake/
 │   └── Version.hpp.in    # 版本与项目名头文件模板（由 CMake 生成）
