@@ -21,30 +21,30 @@
 #include "VulkanContext.hpp"
 
 #ifndef SHADER_DIR
-#define SHADER_DIR "shaders/"
+#define SHADER_DIR L"shaders/"
 #endif
 
 namespace
 {
-    [[nodiscard]] std::vector<char> readFile(const std::string& filename)
+    [[nodiscard]] std::vector<char> readFile(const std::wstring& filename)
     {
-        std::ifstream file(filename, std::ios::binary);
+        std::ifstream file(std::filesystem::path(filename), std::ios::binary);
         if (!file.is_open())
         {
-            throw std::runtime_error("Failed to open file: " + filename);
+            throw std::runtime_error("Failed to open file: " + std::filesystem::path(filename).string());
         }
 
         std::error_code error;
         const auto fileSize = std::filesystem::file_size(filename, error);
         if (error)
         {
-            throw std::runtime_error("Failed to get size of file: " + filename);
+            throw std::runtime_error("Failed to get size of file: " + std::filesystem::path(filename).string());
         }
 
         std::vector<char> buffer(static_cast<size_t>(fileSize));
         if (!buffer.empty() && !file.read(buffer.data(), static_cast<std::streamsize>(buffer.size())))
         {
-            throw std::runtime_error("Failed to read file: " + filename);
+            throw std::runtime_error("Failed to read file: " + std::filesystem::path(filename).string());
         }
         return buffer;
     }
@@ -223,8 +223,8 @@ namespace vkp
         assert(m_descriptorSetLayout != VK_NULL_HANDLE);
 
         // SHADER_DIR 由 CMake 注入（末尾带分隔符），着色器文件名来自 PipelineConfig
-        const auto vertShaderCode = readFile(std::string(SHADER_DIR) + m_config.vertexShader);
-        const auto fragShaderCode = readFile(std::string(SHADER_DIR) + m_config.fragmentShader);
+        const auto vertShaderCode = readFile(std::wstring(SHADER_DIR) + m_config.vertexShader);
+        const auto fragShaderCode = readFile(std::wstring(SHADER_DIR) + m_config.fragmentShader);
         const ShaderModule vertShaderModule(context.getDevice(), vertShaderCode);
         const ShaderModule fragShaderModule(context.getDevice(), fragShaderCode);
 

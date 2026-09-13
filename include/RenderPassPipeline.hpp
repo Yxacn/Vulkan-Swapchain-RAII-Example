@@ -16,8 +16,8 @@ namespace vkp
     // 着色器与光栅化状态集中配置；默认值与当前示例的渲染方式一致
     struct PipelineConfig
     {
-        std::string vertexShader{ "vert.spv" };
-        std::string fragmentShader{ "frag.spv" };
+        std::wstring vertexShader{ L"vert.spv" };
+        std::wstring fragmentShader{ L"frag.spv" };
         VkPrimitiveTopology topology{ VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST };
         VkPolygonMode polygonMode{ VK_POLYGON_MODE_FILL };
         VkCullModeFlags cullMode{ VK_CULL_MODE_NONE };

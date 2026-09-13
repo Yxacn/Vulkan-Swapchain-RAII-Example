@@ -32,7 +32,7 @@ target_include_directories(vkp_core PUBLIC
 )
 
 # SHADER_DIR 由顶层脚本注入，RenderPassPipeline 据此定位运行期 .spv
-target_compile_definitions(vkp_core PRIVATE SHADER_DIR="${SHADER_DIR_DEF}/")
+target_compile_definitions(vkp_core PRIVATE SHADER_DIR=L"${SHADER_DIR_DEF}/")
 
 target_link_libraries(vkp_core PUBLIC
     Vulkan::Vulkan
