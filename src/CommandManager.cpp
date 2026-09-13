@@ -1,4 +1,6 @@
 // CommandManager.cpp
+// 命令管理实现：命令池允许单缓冲重置；录制内容为清屏后绘制索引三角形，
+// 管线、顶点/索引缓冲与描述符集按当前交换链图像绑定。
 #include "CommandManager.hpp"
 
 #include <cassert>

@@ -1,4 +1,6 @@
 // GLWindow.cpp
+// GLFW 窗口实现：尺寸非法时提前拒绝，创建失败时回收已初始化的 GLFW；
+// 移动语义直接转移窗口句柄，移动赋值先销毁自身窗口再接管，引用计数随之增减。
 #include "GLWindow.hpp"
 
 #include <stdexcept>

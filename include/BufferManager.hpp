@@ -1,4 +1,7 @@
 // BufferManager.hpp
+// 缓冲管理：顶点/索引数据经 staging 缓冲上传到设备本地内存；UBO 按交换链
+// 图像分配并持久映射。几何数据为编译期常量且与交换链无关，构造时上传一次；
+// UBO/描述符随交换链重建，避免重建时重复搬运几何数据。
 #pragma once
 
 #include <array>
@@ -87,8 +90,8 @@ namespace vkp
 
         // 几何数据为编译期常量：所有实例共享同一份只读数据，避免每个实例拷贝一份顶点/索引
         static constexpr std::array<Vertex, 3> m_vertices = { { { { -0.5f, -0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
-                                                                 { { 0.5f, -0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
-                                                                 { { 0.0f, 0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f } } } };
+                                                                { { 0.5f, -0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
+                                                                { { 0.0f, 0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f } } } };
         static constexpr std::array<uint16_t, 3> m_indices = { 0, 1, 2 };
     };
 

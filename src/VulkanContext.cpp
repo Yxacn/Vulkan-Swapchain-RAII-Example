@@ -1,4 +1,6 @@
 // VulkanContext.cpp
+// Vulkan 上下文实现：实例创建时合并调用方扩展、GLFW 必需扩展与调试扩展并去重；
+// 验证层缺失或加载失败时降级重试，保证程序在未安装 SDK 的机器上仍可启动。
 #include "VulkanContext.hpp"
 
 #include <algorithm>
@@ -190,8 +192,8 @@ namespace vkp
             if (m_validationEnabled)
             {
                 debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-                debugCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-                                                  VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+                debugCreateInfo.messageSeverity =
+                    VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
                 debugCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
                                               VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
                                               VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
@@ -226,8 +228,8 @@ namespace vkp
 
         VkDebugUtilsMessengerCreateInfoEXT createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-        createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-                                     VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+        createInfo.messageSeverity =
+            VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
         createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
                                  VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
                                  VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
@@ -266,8 +268,8 @@ namespace vkp
 
         // 简单策略：取第一个满足全部条件的设备（集显/独显混用时按枚举顺序）；
         // 若需优先独立显卡，可在此处为候选设备评分排序
-        const auto device = std::ranges::find_if(devices, [this](VkPhysicalDevice candidate)
-                                                 { return isDeviceSuitable(candidate); });
+        const auto device =
+            std::ranges::find_if(devices, [this](VkPhysicalDevice candidate) { return isDeviceSuitable(candidate); });
         if (device == devices.end())
         {
             throw std::runtime_error("Failed to find a suitable GPU!");

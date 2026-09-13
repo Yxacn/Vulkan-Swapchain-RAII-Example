@@ -1,4 +1,6 @@
 // SyncManager.hpp
+// 同步管理：逐帧创建 imageAvailable 信号量与围栏，逐图像创建 renderFinished 信号量。
+// 在飞帧数默认 2 且不超过交换链图像数；围栏创建时即为已触发状态，首帧无需特殊处理。
 #pragma once
 
 #include <array>

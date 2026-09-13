@@ -1,4 +1,7 @@
 // VKEngine.hpp
+// Vulkan 引擎：持有上下文与各资源管理器，对外提供 drawFrame()/waitIdle()。
+// 资源按生存期分两层：常驻资源（交换链/命令池/几何缓冲）只创建一次；
+// 帧资源（管线/帧缓冲/UBO/描述符/同步对象）依赖交换链，交换链重建时整组重建。
 #pragma once
 
 #include <memory>

@@ -1,4 +1,7 @@
 // Application.cpp
+// 应用层实现：构造先建窗口后建引擎，移动赋值先移交引擎再移交窗口，
+// 保证旧引擎销毁依赖窗口的交换链/表面时旧窗口尚未释放。
+// 主循环用 glfwWaitEvents 阻塞等待事件，静态场景下避免空转轮询。
 #include "Application.hpp"
 
 #include <utility>

@@ -18,6 +18,28 @@
 - 双缓冲帧同步（信号量 + 围栏）
 - 支持交换链重建（表面尺寸变化时自动适配）
 - Debug 模式下默认启用 Vulkan 验证层
+- 命令行参数：`-h/--help`、`-v/--version`、`--width`、`--height`、`--title`
+
+---
+
+## 项目结构
+
+```
+VkProject/
+├── CMakeLists.txt        # 顶层构建：项目/版本声明、依赖、着色器编译
+├── cmake/
+│   └── Version.hpp.in    # 版本与项目名头文件模板（由 CMake 生成）
+├── include/              # 公共头文件（应用、窗口、引擎与各资源管理器）
+├── src/
+│   ├── CMakeLists.txt    # vkp_core 静态库与 VkProject 可执行目标
+│   └── *.cpp             # 引擎实现与程序入口
+├── shaders/              # GLSL 源码（构建时编译到 build/shaders/）
+├── glfw/                 # 内置 GLFW 头文件与静态库
+└── build/                # 构建输出（不纳入版本控制）
+```
+
+引擎代码聚合为 `vkp_core` 静态库，可执行文件只保留 `main.cpp`，
+便于后续添加单元测试或复用到其他目标。
 
 ---
 
@@ -71,8 +93,19 @@ cmake --build .
 
 ### 3. 运行
 ```
-./VkProject.exe
+./VkProject.exe              # 默认窗口 800×600
+./VkProject.exe --help       # 查看全部命令行参数
+./VkProject.exe --width 1280 --height 720 --title "Vulkan Triangle"
 ```
+
+### 命令行参数
+| 参数 | 说明 |
+| --- | --- |
+| `-h`, `--help` | 显示帮助并退出 |
+| `-v`, `--version` | 显示版本并退出 |
+| `--width <pixels>` | 窗口宽度，默认 800 |
+| `--height <pixels>` | 窗口高度，默认 600 |
+| `--title <text>` | 窗口标题，默认 `Vulkan` |
 
 ## 注意事项
 ### 验证层：
@@ -82,4 +115,4 @@ cmake --build .
 构建系统通过 CMake 注入 SHADER_DIR（指向构建目录下的 shaders/），代码中亦保留 "shaders/" 作为回退路径。
 
 ### 窗口大小：
-当前窗口大小固定（800×600），不可调整。如需可调整，可修改 GLWindow::initWindow() 中的 GLFW_RESIZABLE 为 GLFW_TRUE；交换链重建逻辑已支持窗口尺寸变化。
+默认 800×600，可通过命令行 `--width/--height/--title` 指定初始值；窗口本身固定大小（GLFW_RESIZABLE 为 GLFW_FALSE），拖拽缩放不可用。如需支持拖拽，可将其改为 GLFW_TRUE，交换链重建逻辑已支持窗口尺寸变化。

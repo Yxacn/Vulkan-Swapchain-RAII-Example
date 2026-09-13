@@ -1,0 +1,15 @@
+// Version.hpp
+// 版本与项目名：由 CMake 依据 project(VkProject VERSION ...) 生成，
+// 作为工程内的唯一来源，避免项目名与版本号在多处硬编码。
+#pragma once
+
+#include <string_view>
+
+namespace vkp
+{
+    inline constexpr std::string_view PROJECT_NAME = "VkProject";
+    inline constexpr int VERSION_MAJOR = 1;
+    inline constexpr int VERSION_MINOR = 0;
+    inline constexpr int VERSION_PATCH = 0;
+    inline constexpr std::string_view VERSION_STRING = "1.0.0";
+} // namespace vkp

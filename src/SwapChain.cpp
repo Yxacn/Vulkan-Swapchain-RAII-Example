@@ -1,4 +1,7 @@
 // SwapChain.cpp
+// 交换链实现：格式/呈现模式/范围按表面能力择优（SRGB + FIFO）；
+// 新链在局部结构体 SwapChainResources 中构建完成后一次性提交，
+// 失败时销毁临时图像视图与交换链并重新抛出。
 #include "SwapChain.hpp"
 
 #include <algorithm>
@@ -13,13 +16,12 @@ namespace vkp
     namespace
     {
         // 偏好 SRGB + FIFO（垂直同步），不支持时回退到可用格式
-        [[nodiscard]] VkSurfaceFormatKHR chooseSwapSurfaceFormat(
-            const std::vector<VkSurfaceFormatKHR>& availableFormats)
+        [[nodiscard]] VkSurfaceFormatKHR
+        chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
         {
             for (const auto& format : availableFormats)
             {
-                if (format.format == VK_FORMAT_B8G8R8A8_SRGB &&
-                    format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+                if (format.format == VK_FORMAT_B8G8R8A8_SRGB && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
                 {
                     return format;
                 }
@@ -29,8 +31,7 @@ namespace vkp
 
         // FIFO（垂直同步）：规范保证所有平台可用，按显示器刷新率逐帧呈现，静态场景下最省电；
         // 若追求更低延迟，可改为优先选择 Mailbox（无撕裂，但持续刷新、功耗更高）
-        [[nodiscard]] VkPresentModeKHR chooseSwapPresentMode(
-            const std::vector<VkPresentModeKHR>& availablePresentModes)
+        [[nodiscard]] VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
         {
             for (const auto& mode : availablePresentModes)
             {

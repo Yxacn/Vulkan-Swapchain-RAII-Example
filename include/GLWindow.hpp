@@ -1,4 +1,7 @@
 // GLWindow.hpp
+// GLFW 窗口封装：创建无 OpenGL 上下文的窗口，对外提供关闭/最小化状态查询。
+// GLFW 全局状态以引用计数维护——首个窗口初始化 GLFW，最后一个窗口销毁时终止，
+// 多个 GLWindow 实例可安全共存；窗口固定尺寸并自动居中到主显示器。
 #pragma once
 
 #include <string>

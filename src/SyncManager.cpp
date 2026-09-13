@@ -1,4 +1,6 @@
 // SyncManager.cpp
+// 同步管理实现：创建过程任一步失败都会回收已建对象再抛出；
+// 销毁后把 m_context 置空，使析构与异常路径可安全重复调用。
 #include "SyncManager.hpp"
 
 #include <algorithm>

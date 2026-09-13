@@ -1,4 +1,6 @@
 // FrameBufferManager.hpp
+// 帧缓冲管理：为每张交换链图像视图创建一个帧缓冲并持有句柄。
+// 帧缓冲引用渲染通道，销毁必须先于 RenderPassPipeline（见 VKEngine 的清理顺序）。
 #pragma once
 
 #include <vector>

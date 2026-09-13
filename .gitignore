@@ -1,2 +1,14 @@
+# 构建产物与本地工具缓存（不入版本控制）
 /build/
 /.cache/
+/cmake-build-*/
+
+# IDE / 编辑器本地配置
+/.vs/
+/.vscode/
+/.idea/
+*.user
+
+# 编译产物与中间输出
+/out/
+*.spv

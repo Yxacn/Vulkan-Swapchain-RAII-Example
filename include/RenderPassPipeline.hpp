@@ -1,4 +1,7 @@
 // RenderPassPipeline.hpp
+// 渲染通道与图形管线：创建单附件渲染通道、描述符集布局与图形管线。
+// 固定功能状态集中在 PipelineConfig，切换拓扑、多边形模式、剔除、混合等
+// 只需改写配置，不必改动创建流程。
 #pragma once
 
 #include <string>

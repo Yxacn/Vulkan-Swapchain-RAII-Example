@@ -1,4 +1,7 @@
 // VulkanContext.hpp
+// Vulkan 上下文：完成实例、调试回调、表面、物理设备与逻辑设备的创建和销毁，
+// 并提供队列族与交换链支持查询，供 SwapChain/CommandManager 等复用。
+// Debug 构建默认启用验证层，层不可用时自动降级并记录运行期状态。
 #pragma once
 
 #include <cassert>

@@ -1,4 +1,7 @@
 // BufferManager.cpp
+// 缓冲管理实现：内存类型按“类型位 + 访问属性”两步匹配；
+// staging 拷贝用一次性命令缓冲完成并等待队列空闲；
+// UBO 采用 HOST_VISIBLE | HOST_COHERENT 持久映射，直接 memcpy 更新。
 #include "BufferManager.hpp"
 
 #include <cassert>
@@ -373,8 +376,7 @@ namespace vkp
     }
 
     // 每个交换链图像分配一套描述符集，各自指向对应的 UBO，与多帧在飞方案配合
-    void BufferManager::createDescriptorSets(VulkanContext& context, RenderPassPipeline& pipeline,
-                                             SwapChain& swapChain)
+    void BufferManager::createDescriptorSets(VulkanContext& context, RenderPassPipeline& pipeline, SwapChain& swapChain)
     {
         const uint32_t imageCount = swapChain.getImageCount();
         assert(imageCount > 0);

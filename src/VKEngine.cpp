@@ -1,4 +1,7 @@
 // VKEngine.cpp
+// Vulkan 引擎实现：常驻资源与帧资源分开创建，交换链重建只重建帧资源；
+// 逐帧绘制遵循“等待围栏 -> 取图 -> 提交 -> 呈现”顺序，
+// 图像级围栏防止同一交换链图像被尚未完成的帧提前复用。
 #include "VKEngine.hpp"
 
 #include <algorithm>
@@ -179,8 +182,8 @@ namespace vkp
             glm::lookAt(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         // 交换链重建瞬间尺寸可能短暂为 0（最小化），height 为 0 会产生 NaN 投影矩阵，用 1.0 兜底
         const VkExtent2D extent = m_swapChain->getExtent();
-        const float aspect = extent.height > 0 ? static_cast<float>(extent.width) / static_cast<float>(extent.height)
-                                               : 1.0f;
+        const float aspect =
+            extent.height > 0 ? static_cast<float>(extent.width) / static_cast<float>(extent.height) : 1.0f;
         glm::mat4 proj = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 10.0f);
         proj[1][1] *= -1; // GLM 默认右手系、裁剪空间 Y 向上，Vulkan NDC 的 Y 向下，翻转投影矩阵 Y 分量
 

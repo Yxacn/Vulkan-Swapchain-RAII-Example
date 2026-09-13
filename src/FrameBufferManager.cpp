@@ -1,4 +1,6 @@
 // FrameBufferManager.cpp
+// 帧缓冲管理实现：逐图像视图创建帧缓冲，任一失败即回收已创建对象后抛出，
+// 避免构造函数抛异常时遗留部分句柄。
 #include "FrameBufferManager.hpp"
 
 #include <cassert>

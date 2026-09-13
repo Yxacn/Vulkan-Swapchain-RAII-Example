@@ -1,4 +1,7 @@
 // RenderPassPipeline.cpp
+// 渲染通道与图形管线实现：SPIR-V 加载按对齐要求先拷贝到 uint32_t 容器，
+// ShaderModule 以 RAII 兜底管线创建失败路径；顶点输入的 location/binding
+// 与 shader.vert 中的声明保持一致。
 #include "RenderPassPipeline.hpp"
 
 #include <array>

@@ -1,4 +1,6 @@
 // CommandManager.hpp
+// 命令管理：持有图形命令池，并按交换链图像数量分配、录制主命令缓冲。
+// 命令缓冲与图像索引一一对应，交换链重建后整组释放并重新录制。
 #pragma once
 
 #include <vector>

@@ -1,4 +1,6 @@
 // VkCheck.hpp
+// Vulkan 返回值检查：把非 VK_SUCCESS 的结果统一转成携带 VkResult 数值的异常，
+// 调用点只需处理成功路径，错误信息不会因遗漏分支而丢失。
 #pragma once
 
 #include <stdexcept>
@@ -13,8 +15,8 @@ namespace vkp
     {
         if (result != VK_SUCCESS)
         {
-            throw std::runtime_error(std::string(message) + " (VkResult " +
-                                     std::to_string(static_cast<int>(result)) + ")");
+            throw std::runtime_error(std::string(message) + " (VkResult " + std::to_string(static_cast<int>(result)) +
+                                     ")");
         }
     }
 } // namespace vkp
