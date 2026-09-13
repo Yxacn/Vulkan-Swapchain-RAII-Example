@@ -21,15 +21,18 @@ namespace vkp
     FrameBufferManager::~FrameBufferManager()
     {
         if (m_context)
-            destroyFramebuffers(*m_context);
+            destroyFramebuffers();
     }
 
-    void FrameBufferManager::destroyFramebuffers(VulkanContext& context) noexcept
+    void FrameBufferManager::destroyFramebuffers() noexcept
     {
+        if (!m_context)
+            return;
+
         for (VkFramebuffer framebuffer : m_swapChainFramebuffers)
         {
             if (framebuffer)
-                vkDestroyFramebuffer(context.getDevice(), framebuffer, nullptr);
+                vkDestroyFramebuffer(m_context->getDevice(), framebuffer, nullptr);
         }
         m_swapChainFramebuffers.clear();
     }
@@ -57,7 +60,7 @@ namespace vkp
             if (vkCreateFramebuffer(context.getDevice(), &framebufferInfo, nullptr, &m_swapChainFramebuffers[i]) !=
                 VK_SUCCESS)
             {
-                destroyFramebuffers(context);
+                destroyFramebuffers();
                 throw std::runtime_error("Failed to create framebuffer!");
             }
         }

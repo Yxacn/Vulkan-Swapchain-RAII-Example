@@ -94,27 +94,25 @@ namespace vkp
             return;
 
         const VkDevice device = m_context->getDevice();
-        for (size_t i = 0; i < m_uniformBuffers.size(); ++i)
+        for (UniformBuffer& uniformBuffer : m_uniformBuffers)
         {
-            if (i < m_uniformBuffersMapped.size() && m_uniformBuffersMapped[i] != nullptr)
+            if (uniformBuffer.mapped != nullptr)
             {
-                vkUnmapMemory(device, m_uniformBuffersMemory[i]);
-                m_uniformBuffersMapped[i] = nullptr;
+                vkUnmapMemory(device, uniformBuffer.memory);
+                uniformBuffer.mapped = nullptr;
             }
-            if (m_uniformBuffers[i] != VK_NULL_HANDLE)
+            if (uniformBuffer.buffer != VK_NULL_HANDLE)
             {
-                vkDestroyBuffer(device, m_uniformBuffers[i], nullptr);
-                m_uniformBuffers[i] = VK_NULL_HANDLE;
+                vkDestroyBuffer(device, uniformBuffer.buffer, nullptr);
+                uniformBuffer.buffer = VK_NULL_HANDLE;
             }
-            if (i < m_uniformBuffersMemory.size() && m_uniformBuffersMemory[i] != VK_NULL_HANDLE)
+            if (uniformBuffer.memory != VK_NULL_HANDLE)
             {
-                vkFreeMemory(device, m_uniformBuffersMemory[i], nullptr);
-                m_uniformBuffersMemory[i] = VK_NULL_HANDLE;
+                vkFreeMemory(device, uniformBuffer.memory, nullptr);
+                uniformBuffer.memory = VK_NULL_HANDLE;
             }
         }
         m_uniformBuffers.clear();
-        m_uniformBuffersMemory.clear();
-        m_uniformBuffersMapped.clear();
 
         if (m_descriptorPool)
         {
@@ -338,17 +336,15 @@ namespace vkp
         constexpr VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
         m_uniformBuffers.resize(imageCount);
-        m_uniformBuffersMemory.resize(imageCount);
-        m_uniformBuffersMapped.resize(imageCount);
 
-        for (uint32_t i = 0; i < imageCount; ++i)
+        for (UniformBuffer& uniformBuffer : m_uniformBuffers)
         {
             createBuffer(context, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                         m_uniformBuffers[i], m_uniformBuffersMemory[i]);
+                         uniformBuffer.buffer, uniformBuffer.memory);
 
-            if (vkMapMemory(context.getDevice(), m_uniformBuffersMemory[i], 0, bufferSize, 0,
-                            &m_uniformBuffersMapped[i]) != VK_SUCCESS)
+            if (vkMapMemory(context.getDevice(), uniformBuffer.memory, 0, bufferSize, 0, &uniformBuffer.mapped) !=
+                VK_SUCCESS)
             {
                 throw std::runtime_error("Failed to map uniform buffer memory!");
             }
@@ -381,8 +377,6 @@ namespace vkp
         const uint32_t imageCount = swapChain.getImageCount();
         assert(imageCount > 0);
         assert(m_uniformBuffers.size() >= imageCount);
-        assert(m_uniformBuffersMemory.size() >= imageCount);
-        assert(m_uniformBuffersMapped.size() >= imageCount);
 
         std::vector<VkDescriptorSetLayout> layouts(imageCount, pipeline.getDescriptorSetLayout());
 
@@ -400,7 +394,7 @@ namespace vkp
 
         for (uint32_t i = 0; i < imageCount; ++i)
         {
-            VkDescriptorBufferInfo bufferInfo{ .buffer = m_uniformBuffers[i],
+            VkDescriptorBufferInfo bufferInfo{ .buffer = m_uniformBuffers[i].buffer,
                                                .offset = 0,
                                                .range = sizeof(UniformBufferObject) };
             VkWriteDescriptorSet descriptorWrite{
@@ -419,11 +413,11 @@ namespace vkp
 
     void BufferManager::updateUniformBuffer(uint32_t currentImage, const UniformBufferObject& ubo)
     {
-        if (currentImage >= m_uniformBuffersMapped.size())
+        if (currentImage >= m_uniformBuffers.size())
         {
             throw std::out_of_range("Uniform buffer index out of range!");
         }
-        std::memcpy(m_uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
+        std::memcpy(m_uniformBuffers[currentImage].mapped, &ubo, sizeof(ubo));
     }
 
     void BufferManager::bindBuffers(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout,

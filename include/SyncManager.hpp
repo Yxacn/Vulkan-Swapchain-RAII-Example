@@ -25,6 +25,7 @@ namespace vkp
         SyncManager& operator=(const SyncManager&) = delete;
 
         [[nodiscard]] uint32_t getFrameCount() const { return m_frameCount; }
+        // 仅前 m_frameCount 项已创建，调用方应按 getFrameCount() 限制索引范围
         [[nodiscard]] const std::array<VkSemaphore, MAX_FRAMES_IN_FLIGHT>& getImageAvailableSemaphores() const
         {
             return m_imageAvailableSemaphores;
@@ -33,6 +34,7 @@ namespace vkp
         {
             return m_renderFinishedSemaphores;
         }
+        // 与 getImageAvailableSemaphores 相同：仅前 m_frameCount 项已创建
         [[nodiscard]] const std::array<VkFence, MAX_FRAMES_IN_FLIGHT>& getInFlightFences() const
         {
             return m_inFlightFences;

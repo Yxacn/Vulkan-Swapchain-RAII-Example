@@ -24,7 +24,6 @@ namespace vkp
         SwapChain& operator=(const SwapChain&) = delete;
 
         void recreateSwapChain(VulkanContext& context, GLFWwindow* window);
-        void cleanupSwapChain();
 
         [[nodiscard]] VkSwapchainKHR getSwapChain() const { return m_swapChain; }
         [[nodiscard]] VkFormat getImageFormat() const { return m_swapChainImageFormat; }
@@ -55,6 +54,8 @@ namespace vkp
         [[nodiscard]] SwapChainResources buildSwapChain(VulkanContext& context, GLFWwindow* window,
                                                         VkSwapchainKHR oldSwapChain);
         void commit(SwapChainResources&& resources);
+        // 销毁交换链及其图像视图：只应由析构与 commit 调用
+        void cleanupSwapChain();
 
     private:
         VulkanContext* m_context{ nullptr };

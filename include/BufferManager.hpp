@@ -58,6 +58,15 @@ namespace vkp
         [[nodiscard]] uint32_t getIndexCount() const { return static_cast<uint32_t>(m_indices.size()); }
 
     private:
+        // 单张交换链图像对应的一套 UBO 资源：句柄、内存与映射指针集中存放，
+        // 避免多个并行容器在下标处失配
+        struct UniformBuffer
+        {
+            VkBuffer buffer{ VK_NULL_HANDLE };
+            VkDeviceMemory memory{ VK_NULL_HANDLE };
+            void* mapped{ nullptr };
+        };
+
         void createVertexBuffer(VulkanContext& context, CommandManager& cmdManager);
         void createIndexBuffer(VulkanContext& context, CommandManager& cmdManager);
         void createDeviceLocalBuffer(VulkanContext& context, CommandManager& cmdManager,
@@ -81,9 +90,7 @@ namespace vkp
         VkDeviceMemory m_vertexBufferMemory{ VK_NULL_HANDLE };
         VkBuffer m_indexBuffer{ VK_NULL_HANDLE };
         VkDeviceMemory m_indexBufferMemory{ VK_NULL_HANDLE };
-        std::vector<VkBuffer> m_uniformBuffers;
-        std::vector<VkDeviceMemory> m_uniformBuffersMemory;
-        std::vector<void*> m_uniformBuffersMapped;
+        std::vector<UniformBuffer> m_uniformBuffers;
 
         VkDescriptorPool m_descriptorPool{ VK_NULL_HANDLE };
         std::vector<VkDescriptorSet> m_descriptorSets;

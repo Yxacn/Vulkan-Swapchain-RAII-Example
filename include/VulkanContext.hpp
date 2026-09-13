@@ -48,6 +48,8 @@ namespace vkp
             [[nodiscard]] bool isComplete() const { return graphicsFamily.has_value() && presentFamily.has_value(); }
         };
         [[nodiscard]] QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) const;
+        // 创建路径专用：队列族不齐备时抛出异常，省去每个调用点重复的 isComplete 检查
+        [[nodiscard]] QueueFamilyIndices getRequiredQueueFamilies() const;
 
         struct SwapChainSupportDetails
         {

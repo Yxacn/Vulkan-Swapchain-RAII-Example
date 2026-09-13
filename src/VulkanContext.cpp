@@ -25,6 +25,29 @@ namespace
     inline constexpr std::array<const char*, 1> kValidationLayers = { "VK_LAYER_KHRONOS_validation" };
     inline constexpr std::array<const char*, 1> kDeviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
+    VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT /*messageSeverity*/,
+                                                 VkDebugUtilsMessageTypeFlagsEXT /*messageType*/,
+                                                 const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+                                                 void* /*pUserData*/)
+    {
+        std::cerr << "validation layer: " << pCallbackData->pMessage << '\n';
+        return VK_FALSE;
+    }
+
+    // 调试回调配置在实例创建（pNext 链）与独立 messenger 两处使用，集中构造避免字段漂移
+    [[nodiscard]] VkDebugUtilsMessengerCreateInfoEXT makeDebugMessengerCreateInfo()
+    {
+        VkDebugUtilsMessengerCreateInfoEXT createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+        createInfo.messageSeverity =
+            VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+        createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                                 VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                                 VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+        createInfo.pfnUserCallback = debugCallback;
+        return createInfo;
+    }
+
     [[nodiscard]] bool hasLayer(const std::vector<VkLayerProperties>& availableLayers, const char* layerName)
     {
         return std::ranges::any_of(availableLayers, [layerName](const auto& layer)
@@ -37,19 +60,41 @@ namespace
         return std::ranges::any_of(availableExtensions, [extensionName](const auto& extension)
                                    { return std::string_view(extension.extensionName) == extensionName; });
     }
+
+    // 追加名称列表：调用方未提供列表时直接忽略，避免对空指针做无意义插入
+    void appendNames(std::vector<const char*>& names, const char* const* source, uint32_t count)
+    {
+        if (source != nullptr && count > 0)
+        {
+            names.insert(names.end(), source, source + count);
+        }
+    }
+
+    // 按字符串内容排序去重：同名条目以不同指针重复出现会触发验证层告警
+    void deduplicateNames(std::vector<const char*>& names)
+    {
+        const auto toName = [](const char* name) { return std::string_view(name); };
+        std::ranges::sort(names, {}, toName);
+        const auto [uniqueBegin, uniqueEnd] = std::ranges::unique(names, {}, toName);
+        names.erase(uniqueBegin, uniqueEnd);
+    }
+
+    // 验证层是否完整可用：不可用时由调用方降级为无验证层运行
+    [[nodiscard]] bool hasValidationLayerSupport()
+    {
+        uint32_t layerCount = 0;
+        vkp::checkVk(vkEnumerateInstanceLayerProperties(&layerCount, nullptr), "Failed to query validation layers!");
+        std::vector<VkLayerProperties> availableLayers(layerCount);
+        vkp::checkVk(vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data()),
+                     "Failed to query validation layers!");
+
+        return std::ranges::all_of(kValidationLayers, [&availableLayers](const char* layerName)
+                                   { return hasLayer(availableLayers, layerName); });
+    }
 } // namespace
 
 namespace vkp
 {
-    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT /*messageSeverity*/,
-                                                        VkDebugUtilsMessageTypeFlagsEXT /*messageType*/,
-                                                        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-                                                        void* /*pUserData*/)
-    {
-        std::cerr << "validation layer: " << pCallbackData->pMessage << '\n';
-        return VK_FALSE;
-    }
-
     VulkanContext::VulkanContext(GLFWwindow* window, const VkApplicationInfo& appInfo,
                                  const VkInstanceCreateInfo& instanceCreateInfo)
     {
@@ -106,24 +151,12 @@ namespace vkp
     // 保证学习项目在任何机器上都能启动
     void VulkanContext::createInstance(const VkApplicationInfo& appInfo, const VkInstanceCreateInfo& instanceCreateInfo)
     {
-        m_validationEnabled = kEnableValidationLayers;
-        if (m_validationEnabled)
+        // 验证层不可用时降级为无验证层运行（仅打印警告），保证未安装 SDK 的机器也能启动
+        m_validationEnabled = kEnableValidationLayers && hasValidationLayerSupport();
+        if (kEnableValidationLayers && !m_validationEnabled)
         {
-            uint32_t layerCount = 0;
-            checkVk(vkEnumerateInstanceLayerProperties(&layerCount, nullptr), "Failed to query validation layers!");
-            std::vector<VkLayerProperties> availableLayers(layerCount);
-            checkVk(vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data()),
-                    "Failed to query validation layers!");
-
-            const bool allLayersAvailable =
-                std::ranges::all_of(kValidationLayers, [&availableLayers](const char* layerName)
-                                    { return hasLayer(availableLayers, layerName); });
-            if (!allLayersAvailable)
-            {
-                std::cerr << "Warning: validation layer not available, running without it "
-                             "(install the Vulkan SDK to enable validation).\n";
-                m_validationEnabled = false;
-            }
+            std::cerr << "Warning: validation layer not available, running without it "
+                         "(install the Vulkan SDK to enable validation).\n";
         }
 
         VkInstanceCreateInfo createInfo = instanceCreateInfo;
@@ -151,53 +184,33 @@ namespace vkp
             // 直接覆盖 ppEnabledExtensionNames 会静默丢弃调用方传入的扩展，因此先收集再赋值
             std::vector<const char*> extensions;
             extensions.reserve(callerExtensionCount + glfwExtensionCount + (m_validationEnabled ? 1u : 0u));
-            if (callerExtensions != nullptr)
-            {
-                extensions.insert(extensions.end(), callerExtensions, callerExtensions + callerExtensionCount);
-            }
-            extensions.insert(extensions.end(), glfwExtensions, glfwExtensions + glfwExtensionCount);
+            appendNames(extensions, callerExtensions, callerExtensionCount);
+            appendNames(extensions, glfwExtensions, glfwExtensionCount);
             if (m_validationEnabled)
             {
                 extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
             }
-            // 去重：同一扩展重复出现会触发验证层告警；按字符串内容而非指针地址比较
-            const auto toName = [](const char* name) { return std::string_view(name); };
-            std::ranges::sort(extensions, {}, toName);
-            const auto [uniqueBegin, uniqueEnd] = std::ranges::unique(extensions, {}, toName);
-            extensions.erase(uniqueBegin, uniqueEnd);
-
+            deduplicateNames(extensions);
             createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
             createInfo.ppEnabledExtensionNames = extensions.data();
 
             // 合并调用方层与（验证启用时的）验证层
             std::vector<const char*> layers;
             layers.reserve(callerLayerCount + (m_validationEnabled ? kValidationLayers.size() : 0u));
-            if (callerLayers != nullptr)
-            {
-                layers.insert(layers.end(), callerLayers, callerLayers + callerLayerCount);
-            }
+            appendNames(layers, callerLayers, callerLayerCount);
             if (m_validationEnabled)
             {
                 layers.insert(layers.end(), kValidationLayers.begin(), kValidationLayers.end());
             }
-            std::ranges::sort(layers, {}, toName);
-            const auto [uniqueLayerBegin, uniqueLayerEnd] = std::ranges::unique(layers, {}, toName);
-            layers.erase(uniqueLayerBegin, uniqueLayerEnd);
+            deduplicateNames(layers);
             createInfo.enabledLayerCount = static_cast<uint32_t>(layers.size());
             createInfo.ppEnabledLayerNames = layers.data();
 
             // 调试回调随实例创建（pNext 链保留调用方原有链）；每次循环重置，避免引用上轮局部变量
             createInfo.pNext = instanceCreateInfo.pNext;
-            VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
+            VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = makeDebugMessengerCreateInfo();
             if (m_validationEnabled)
             {
-                debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-                debugCreateInfo.messageSeverity =
-                    VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-                debugCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-                                              VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-                                              VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-                debugCreateInfo.pfnUserCallback = debugCallback;
                 debugCreateInfo.pNext = createInfo.pNext;
                 createInfo.pNext = &debugCreateInfo;
             }
@@ -226,14 +239,7 @@ namespace vkp
         if (!m_validationEnabled)
             return;
 
-        VkDebugUtilsMessengerCreateInfoEXT createInfo{};
-        createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-        createInfo.messageSeverity =
-            VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-        createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-                                 VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-                                 VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-        createInfo.pfnUserCallback = debugCallback;
+        VkDebugUtilsMessengerCreateInfoEXT createInfo = makeDebugMessengerCreateInfo();
 
         const auto func = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(
             vkGetInstanceProcAddr(m_instance, "vkCreateDebugUtilsMessengerEXT"));
@@ -327,6 +333,17 @@ namespace vkp
         return indices;
     }
 
+    // 创建路径专用：队列族不齐备时直接抛出，避免各调用点重复检查 isComplete()
+    VulkanContext::QueueFamilyIndices VulkanContext::getRequiredQueueFamilies() const
+    {
+        const QueueFamilyIndices indices = findQueueFamilies(m_physicalDevice);
+        if (!indices.isComplete())
+        {
+            throw std::runtime_error("Failed to find required queue families!");
+        }
+        return indices;
+    }
+
     VulkanContext::SwapChainSupportDetails VulkanContext::querySwapChainSupport(VkPhysicalDevice device) const
     {
         assert(device != VK_NULL_HANDLE);
@@ -377,11 +394,7 @@ namespace vkp
     {
         assert(m_physicalDevice != VK_NULL_HANDLE);
 
-        const QueueFamilyIndices indices = findQueueFamilies(m_physicalDevice);
-        if (!indices.isComplete())
-        {
-            throw std::runtime_error("Failed to find required queue families!");
-        }
+        const QueueFamilyIndices indices = getRequiredQueueFamilies();
         const uint32_t graphicsFamily = indices.graphicsFamily.value();
         const uint32_t presentFamily = indices.presentFamily.value();
 

@@ -177,6 +177,7 @@ namespace vkp
         assert(m_swapChain != nullptr);
         assert(m_bufferManager != nullptr);
 
+        // 静态相机：位于 +Z 轴 2 个单位处看向原点，视场 45°、近/远裁剪面 0.1/10
         const glm::mat4 model(1.0f);
         const glm::mat4 view =
             glm::lookAt(glm::vec3(0.0f, 0.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));

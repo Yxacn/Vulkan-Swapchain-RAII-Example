@@ -31,11 +31,7 @@ namespace vkp
 
     void CommandManager::createCommandPool(VulkanContext& context)
     {
-        const VulkanContext::QueueFamilyIndices indices = context.findQueueFamilies(context.getPhysicalDevice());
-        if (!indices.isComplete())
-        {
-            throw std::runtime_error("Failed to find required queue families!");
-        }
+        const VulkanContext::QueueFamilyIndices indices = context.getRequiredQueueFamilies();
 
         VkCommandPoolCreateInfo poolInfo{};
         poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
